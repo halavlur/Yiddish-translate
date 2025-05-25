@@ -92,8 +92,8 @@
         // Get references to the HTML elements
         const apiKeyInput = document.getElementById('apiKeyInput');
         const apiKeySection = document.getElementById('apiKeySection');
-        const submitApiKeyButton = document.getElementById('submitApiKeyButton'); // New button for API key
-        const apiKeyStatusMessage = document.getElementById('apiKeyStatusMessage'); // Message for API key status
+        const submitApiKeyButton = document.getElementById('submitApiKeyButton');
+        const apiKeyStatusMessage = document.getElementById('apiKeyStatusMessage');
         const englishInput = document.getElementById('englishInput');
         const translateButton = document.getElementById('translateButton');
         const yiddishOutput = document.getElementById('yiddishOutput');
@@ -102,16 +102,28 @@
         const copyButton = document.getElementById('copyButton');
         const copyMessage = document.getElementById('copyMessage');
 
+        // Load API key from localStorage when the page loads
+        const savedApiKey = localStorage.getItem('geminiApiKey');
+        if (savedApiKey) {
+            apiKeyInput.value = savedApiKey;
+            // Optionally hide the API key section if a key is already saved
+            apiKeySection.classList.add('hidden');
+        }
+
         // Function to validate and hide API key input
         const validateAndHideApiKey = () => {
             const apiKey = apiKeyInput.value.trim();
             if (apiKey === '') {
+                // If API key is empty, remove it from localStorage
+                localStorage.removeItem('geminiApiKey');
                 apiKeyStatusMessage.textContent = 'Please enter your API Key.';
                 apiKeyStatusMessage.classList.remove('hidden', 'text-green-600');
                 apiKeyStatusMessage.classList.add('text-red-600');
-                apiKeySection.classList.remove('hidden');
+                apiKeySection.classList.remove('hidden'); // Ensure it's visible if empty
                 return false;
             } else {
+                // If API key is provided, save it to localStorage
+                localStorage.setItem('geminiApiKey', apiKey);
                 apiKeyStatusMessage.textContent = 'API Key saved!';
                 apiKeyStatusMessage.classList.remove('hidden', 'text-red-600');
                 apiKeyStatusMessage.classList.add('text-green-600');
@@ -196,9 +208,11 @@
                 errorMessage.textContent = `Failed to translate: ${error.message}. Please try again.`;
                 errorMessage.classList.remove('hidden');
                 apiKeySection.classList.remove('hidden'); // Show API key input on error
-                apiKeyStatusMessage.textContent = 'API Key might be invalid or expired.';
+                apiKeyStatusMessage.textContent = 'API Key might be invalid or expired. Please check and submit again.';
                 apiKeyStatusMessage.classList.remove('hidden', 'text-green-600');
                 apiKeyStatusMessage.classList.add('text-red-600');
+                // Also remove the key from localStorage if it caused an error
+                localStorage.removeItem('geminiApiKey');
             } finally {
                 // Hide loading indicator and re-enable button
                 loadingIndicator.classList.add('hidden');
