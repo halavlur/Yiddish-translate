@@ -52,9 +52,18 @@
             <label for="englishInput" class="block text-gray-700 text-sm font-semibold mb-2">
                 Enter English Text:
             </label>
-            <textarea id="englishInput"
-                      class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y min-h-[120px] text-gray-900"
-                      placeholder="Type your English text here..."></textarea>
+            <div class="relative">
+                <textarea id="englishInput"
+                          class="w-full p-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 resize-y min-h-[120px] text-gray-900 pr-10"
+                          placeholder="Type your English text here..."></textarea>
+                <button id="clearEnglishInputButton"
+                        class="absolute top-3 right-3 text-gray-500 hover:text-gray-700 focus:outline-none"
+                        aria-label="Clear English Input">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                </button>
+            </div>
         </div>
 
         <button id="translateButton"
@@ -80,7 +89,7 @@
                       placeholder="אייער אידישע איבערזעצונג וועט זיך דאָ באַווייזן..."></textarea>
             <button id="copyButton"
                     class="mt-4 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-2 px-4 rounded-lg shadow-md transition duration-300 ease-in-out transform hover:scale-105 focus:outline-none focus:ring-2 focus:ring-gray-400 focus:ring-opacity-75">
-                קאפּי טעקסט
+                קאפּירן טעקסט
             </button>
             <span id="copyMessage" class="ml-3 text-green-600 hidden">קאפּירט!</span>
         </div>
@@ -95,6 +104,7 @@
         const submitApiKeyButton = document.getElementById('submitApiKeyButton');
         const apiKeyStatusMessage = document.getElementById('apiKeyStatusMessage');
         const englishInput = document.getElementById('englishInput');
+        const clearEnglishInputButton = document.getElementById('clearEnglishInputButton'); // New button reference
         const translateButton = document.getElementById('translateButton');
         const yiddishOutput = document.getElementById('yiddishOutput');
         const loadingIndicator = document.getElementById('loadingIndicator');
@@ -138,6 +148,14 @@
         // Add event listener to the new API key submit button
         submitApiKeyButton.addEventListener('click', validateAndHideApiKey);
 
+        // Add event listener to the clear English input button
+        clearEnglishInputButton.addEventListener('click', () => {
+            englishInput.value = ''; // Clear the English textarea
+            yiddishOutput.value = ''; // Clear the Yiddish output as well
+            errorMessage.classList.add('hidden'); // Hide any error messages
+            copyMessage.classList.add('hidden'); // Hide copy message
+        });
+
         // Add event listener to the translate button
         translateButton.addEventListener('click', async () => {
             const englishText = englishInput.value.trim();
@@ -169,14 +187,22 @@
 
             try {
                 // Construct the prompt for the Gemini AI model
-                const prompt = `Translate the following English text to Yiddish. The translation should be in a very warm, natural, conversational, idiomatic, and specifically "heimish" (traditional, Chasidic) style, as if a native Yiddish speaker is talking. Do NOT add any words that are not present in the original English text. Provide only the Yiddish translation:\n\nEnglish: "${englishText}"\nYiddish:`;
+                const prompt = `איבערזעץ די פאלגנדע ענגלישע טעקסט צו א הויכ-קוואליטעט, פליסיגע, נאטירליכע און לעבעדיגע אידיש.
+די איבערזעצונג זאל קלינגען ווי א געבילדעטער, היימישער איד וואלט געשריבן אדער גערעדט, מיט אכטונג צו אומגאנגס-שפראך און אידישע אויסדרוקן.
+פארזיכערט אז די גראמאטיק, אויסלייג און ווארט-אויסוואל זענען גאר פינקטליך און פאסיג פארן קאנטעקסט.
+אויסמיידט דירעקטע, ווארט-צו-ווארט איבערזעצונגען וואס קלינגען אומנאטירליך אין אידיש.
+די אידישע טעקסט זאל זיין לייכט צו פארשטיין און קלאר.
+גיב נאר די אידישע איבערזעצונג.
+
+טעקסט: "${englishText}"
+אידיש:`;
 
                 // Prepare the payload for the API request
                 let chatHistory = [];
                 chatHistory.push({ role: "user", parts: [{ text: prompt }] });
                 const payload = { contents: chatHistory };
 
-                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${apiKey}`;
+                const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-pro:generateContent?key=${apiKey}`;
 
                 // Make the fetch call to the Gemini API
                 const response = await fetch(apiUrl, {
